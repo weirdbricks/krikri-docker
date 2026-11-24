@@ -1,5 +1,5 @@
 name: krikri-docker
-version: 0.1.1
+version: 1.0.0
 
 description: |
   Docker Engine API client for Crystal, a trimmed fork of marghidanu/docr

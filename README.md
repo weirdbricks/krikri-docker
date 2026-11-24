@@ -8,6 +8,12 @@ project. It carries the Docker/Podman compatibility fixes the fork needed and
 keeps only the API surface krikri uses, so the shard stays small enough to
 audit and to release on krikri's own cadence.
 
+## Versioning
+
+The repository still carries upstream docr's pre-fork `0.1.x` tags; those are
+history, not releases of this shard. The project-owned shard starts its own
+line at `v1.0.0`, in step with krikri's other library shards.
+
 ## Installation
 
 1. Add the dependency to your `shard.yml`:
@@ -16,7 +22,7 @@ audit and to release on krikri's own cadence.
    dependencies:
      krikri-docker:
        github: weirdbricks/krikri-docker
-       tag: v0.1.0
+       tag: v1.0.0
    ```
 
 2. Run `shards install`
