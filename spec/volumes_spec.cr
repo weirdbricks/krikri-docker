@@ -1,27 +1,22 @@
 require "./spec_helper"
 
-client = Docr::Client.new
-api = Docr::API.new(client)
-
 describe "Volumes" do
-  it "should create volume" do
-    config = Docr::Types::VolumeConfig.new(
-      name: "test",
-      driver: "local",
-    )
+  it "lists, creates, inspects and removes a volume" do
+    next unless docker_available?
 
-    _ = api.volumes.create(config)
-  end
+    client = KrikriDocker::Client.new
+    api = KrikriDocker::API.new(client)
 
-  it "should list all volumes" do
-    _ = api.volumes.list
-  end
+    api.volumes.create("krikri-docker-spec-vol")
 
-  it "should retrieve inspect volume" do
-    _ = api.volumes.inspect("test")
-  end
+    listing = api.volumes.list_json
+    listing["Volumes"].as_a.any?(&.["Name"].as_s.==("krikri-docker-spec-vol")).should be_true
 
-  it "should remove volume" do
-    _ = api.volumes.delete("test")
+    volume = api.volumes.get_json("krikri-docker-spec-vol")
+    volume.should_not be_nil
+    volume.try(&.["Name"].as_s).should eq "krikri-docker-spec-vol"
+
+    api.volumes.remove("krikri-docker-spec-vol")
+    api.volumes.get_json("krikri-docker-spec-vol").should be_nil
   end
 end

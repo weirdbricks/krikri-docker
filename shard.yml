@@ -1,13 +1,14 @@
-name: docr
-version: 0.1.4
+name: krikri-docker
+version: 0.1.0
+
+description: |
+  Docker Engine API client for Crystal, a trimmed fork of marghidanu/docr
+  carrying the Docker/Podman response-shape and connection fixes krikri needs.
 
 authors:
   - Tudor <tudor@marghidanu.com>
+  - Krikri Contributors
 
-crystal: ">= 0.36.1"
-
-dependencies:
-  crystar:
-    github: naqvis/crystar
+crystal: ">= 1.0.0"
 
 license: MIT

@@ -1,18 +1,12 @@
-# docr
+# krikri-docker
 
-![CI](https://github.com/marghidanu/docr/workflows/CI/badge.svg)
+Docker Engine API client for Crystal.
 
-Docker client for Crystal. 
-
- ## Description
-
-Remaining issues:
-
-* [ ] Test all endpoint functions
-* [ ] Make sure models are complete
-* [ ] Extend client to support calls over network
-
-PRs are always welcomed!
+This is a trimmed fork of [marghidanu/docr](https://github.com/marghidanu/docr)
+(MIT), maintained by the [krikri](https://github.com/weirdbricks/krikri)
+project. It carries the Docker/Podman compatibility fixes the fork needed and
+keeps only the API surface krikri uses, so the shard stays small enough to
+audit and to release on krikri's own cadence.
 
 ## Installation
 
@@ -20,8 +14,9 @@ PRs are always welcomed!
 
    ```yaml
    dependencies:
-     docr:
-       github: marghidanu/docr
+     krikri-docker:
+       github: weirdbricks/krikri-docker
+       tag: v0.1.0
    ```
 
 2. Run `shards install`
@@ -29,7 +24,18 @@ PRs are always welcomed!
 ## Usage
 
 ```crystal
-require "docr"
+require "krikri_docker"
+
+client = KrikriDocker::Client.new                       # /var/run/docker.sock or DOCKER_HOST
+api = KrikriDocker::API.new(client)
+
+api.containers.list
+```
+
+A remote daemon takes the TCP constructor, optionally with TLS:
+
+```crystal
+client = KrikriDocker::Client.new("docker.example.com", 2376, tls_context)
 ```
 
 ## Supported API calls
@@ -39,31 +45,14 @@ require "docr"
 * [x] ContainerList
 * [x] ContainerCreate
 * [x] ContainerInspect
-* [x] ContainerTop
-* [x] ContainerLogs
-* [x] ContainerChanges
-* [ ] ContainerStats
 * [x] ContainerStart
 * [x] ContainerStop
-* [x] ContainerRestart
-* [x] ContainerKill
-* [ ] ContainerUpdate
-* [ ] ContainerRename
-* [x] ContainerPause
-* [x] ContainerUnpause
-* [ ] ContainerAttach
-* [x] ContainerWait
 * [x] ContainerDelete
 
 ### Images
 
-* [x] ImageList
-* [x] ImageBuild
-* [x] ImageCreate
+* [x] ImageCreate (pull)
 * [x] ImageInspect
-* [x] ImageHistory
-* [x] ImagePush
-* [x] ImageTag
 * [x] ImageDelete
 
 ### Networks
@@ -71,8 +60,8 @@ require "docr"
 * [x] NetworkList
 * [x] NetworkCreate
 * [x] NetworkInspect
-* [ ] NetworkConnect
-* [ ] NetworkDisconnect
+* [x] NetworkConnect
+* [x] NetworkDisconnect
 * [x] NetworkDelete
 
 ### Volumes
@@ -82,22 +71,28 @@ require "docr"
 * [x] VolumeInspect
 * [x] VolumeDelete
 
-### Exec
-
-* [x] ContainerExec
-* [x] ExecStart
-* [x] ExecInspect
-
 ### System
 
 * [x] SystemAuth
-* [x] SystemInfo
 * [x] SystemVersion
-* [x] SystemPing
-* [x] SystemEvents
-* [ ] SystemDataUsage
+
+## Differences from upstream docr
+
+- Module/namespace renamed `Docr` -> `KrikriDocker` (so both trees can be
+  installed side by side).
+- Failures carry the request URL, status code, reason phrase and raw body, and
+  the negotiated API version is cached per client, so callers can render the
+  Docker Python SDK's `APIError` wording without a second round trip.
+- `DOCKER_HOST` support, reconnect handling, TCP/TLS with a `tls_hostname`
+  override, and the nullable/newer-Engine response shapes (`Health.Log`,
+  `LogConfig.Config`, a missing `GraphDriver`).
+- Everything upstream has that krikri does not use (exec, build, push, tag,
+  logs, events, system info, changes, top, waits, pauses, restart/kill, image
+  history) is gone.
 
 ## Contributors
 
-- [Tudor Marghidanu](https://github.com/marghidanu) - creator and maintainer
-- [Troy Sornson](https://github.com/Vici37) - contributor
+- [Tudor Marghidanu](https://github.com/marghidanu) - creator and maintainer of
+  upstream docr
+- [Troy Sornson](https://github.com/Vici37) - upstream contributor
+- Krikri Contributors - fork maintenance

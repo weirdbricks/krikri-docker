@@ -1,53 +1,35 @@
 require "./spec_helper"
 
-client = Docr::Client.new
-api = Docr::API.new(client)
-
-api.images.create("nginx", "latest")
-
 describe "Containers" do
-  it "should create a new container" do
-    config = Docr::Types::CreateContainerConfig.new(
-      image: "nginx:latest",
-      host_config: Docr::Types::HostConfig.new,
+  it "lists, creates, inspects, starts, stops and deletes a container" do
+    next unless docker_available?
+
+    client = KrikriDocker::Client.new
+    api = KrikriDocker::API.new(client)
+    api.images.pull("alpine", "latest")
+
+    config = KrikriDocker::Types::CreateContainerConfig.new(
+      image: "alpine:latest",
+      cmd: ["sleep", "60"],
+      host_config: KrikriDocker::Types::HostConfig.new,
     )
 
-    _ = api.containers.create("abc", config)
-    api.containers.start("abc")
-  end
+    created = api.containers.create("krikri-docker-spec", config)
+    api.containers.start(created.id)
 
-  it "should inspect container" do
-    result = api.containers.inspect("abc")
+    inspected = api.containers.inspect(created.id)
+    inspected.config.cmd.should eq ["sleep", "60"]
 
-    result.should_not be_nil
-    result.name.should eq "/abc"
-  end
+    json = api.containers.inspect_json(created.id)
+    json["Id"].as_s.should eq created.id
 
-  it "should display running processes inside the container" do
-    _ = api.containers.top(id: "abc", ps_args: "aux")
-  end
+    found = api.containers.list(all: true).find(&.names.map(&.lchop('/')).includes?("krikri-docker-spec"))
+    found.should_not be_nil
+    found.try(&.state).should eq "running"
 
-  it "should list all containers" do
-    result = api.containers.list(
-      limit: 1,
-      filters: {"name" => ["abc"]},
-    )
+    api.containers.stop(created.id)
+    api.containers.delete(created.id, force: true)
 
-    result.empty?.should be_false
-
-    result[0].image.should eq "nginx:latest"
-    result[0].names.includes?("/abc").should be_true
-  end
-
-  it "should delete the container" do
-    api.containers.stop("abc")
-    api.containers.delete("abc")
-
-    result = api.containers.list(
-      limit: 1,
-      filters: {"name" => ["abc"]},
-    )
-
-    result.empty?.should be_true
+    api.containers.list(all: true).any?(&.names.map(&.lchop('/')).includes?("krikri-docker-spec")).should be_false
   end
 end

@@ -1,56 +1,32 @@
 require "./spec_helper"
 
-def setup
-  client = Docr::Client.new
-  api = Docr::API.new(client)
-
-  api
-end
-
 describe "Images" do
-  it "should build an image" do
-    api = setup
+  it "pulls, inspects and deletes an image" do
+    next unless docker_available?
 
-    api.images.build(["docr/local:latest", "docr/local:1"], "./example") { }
+    client = KrikriDocker::Client.new
+    api = KrikriDocker::API.new(client)
+
+    api.images.pull("alpine", "latest")
+
+    inspected = api.images.inspect("alpine:latest")
+    inspected.id.should start_with "sha256:"
+
+    json = api.images.inspect_json("alpine:latest")
+    json["Id"].as_s.should eq inspected.id
+
+    api.images.delete("alpine:latest", force: true)
   end
 
-  it "should retrieve an image" do
-    api = setup
+  it "raises DockerAPIError carrying the pull URL for an unparseable reference" do
+    next unless docker_available?
 
-    api.images.create("busybox")
-  end
-
-  it "should list all images" do
-    api = setup
-
-    api.images.list
-  end
-
-  it "should inspect an image" do
-    api = setup
-
-    api.images.inspect("busybox:latest")
-  end
-
-  it "should retrieve image history" do
-    api = setup
-
-    api.images.history("busybox:latest")
-  end
-
-  it "should tag an image" do
-    api = setup
-
-    api.images.tag(
-      name: "busybox:latest",
-      repo: "local/busybox",
-      tag: "latest"
-    )
-  end
-
-  it "should delete an image" do
-    api = setup
-
-    api.images.delete("local/busybox:latest")
+    api = KrikriDocker::API.new(KrikriDocker::Client.new)
+    error = expect_raises(KrikriDocker::Errors::DockerAPIError) do
+      api.images.pull("not a valid reference", "latest")
+    end
+    error.url.should eq "/images/create?tag=latest&fromImage=not+a+valid+reference"
+    error.status_code.should eq 500
+    error.reason.should_not be_empty
   end
 end

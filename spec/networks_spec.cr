@@ -1,27 +1,25 @@
 require "./spec_helper"
 
-client = Docr::Client.new
-api = Docr::API.new(client)
-
-id : String? = nil
-
 describe "Networks" do
-  it "should list all networks" do
-    _ = api.networks.list
-  end
+  it "lists, creates, inspects and deletes a network" do
+    next unless docker_available?
 
-  it "should create a network" do
-    config = Docr::Types::NetworkConfig.new("test")
+    client = KrikriDocker::Client.new
+    api = KrikriDocker::API.new(client)
 
-    result = api.networks.create(config)
-    id = result.id
-  end
+    config = KrikriDocker::Types::NetworkConfig.new("krikri-docker-spec-net")
+    created = api.networks.create(config)
 
-  it "should inspect a network" do
-    _ = api.networks.inspect(id.to_s)
-  end
+    found = api.networks.list.find(&.name.==("krikri-docker-spec-net"))
+    found.should_not be_nil
 
-  it "should delete the network" do
-    _ = api.networks.delete(id.to_s)
+    inspected = api.networks.inspect(created.id)
+    inspected.id.should eq created.id
+
+    json = api.networks.get_json(created.id)
+    json["Id"].as_s.should eq created.id
+
+    api.networks.delete(created.id)
+    api.networks.list.any?(&.name.==("krikri-docker-spec-net")).should be_false
   end
 end
