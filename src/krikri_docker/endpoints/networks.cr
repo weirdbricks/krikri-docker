@@ -1,5 +1,6 @@
 require "../client"
 require "../types/*"
+require "../url"
 
 module KrikriDocker::Endpoints
   # Network endpoints of the Docker Engine API.
@@ -38,7 +39,7 @@ module KrikriDocker::Endpoints
 
     # Inspects a specific network by its ID or name.
     def inspect(id : String) : Types::Network
-      @client.call("GET", "/networks/#{id}") do |response|
+      @client.call("GET", "/networks/#{URL.path_segment(id)}") do |response|
         return Types::Network.from_json(response.body)
       end
     end
@@ -46,7 +47,7 @@ module KrikriDocker::Endpoints
     # The daemon's own inspect payload, verbatim - what Ansible reports in a
     # module result, where the typed model would drop fields the daemon sent.
     def get_json(id : String) : JSON::Any
-      @client.call("GET", "/networks/#{id}", HTTP::Headers{"Accept" => "application/json"}) do |response|
+      @client.call("GET", "/networks/#{URL.path_segment(id)}", HTTP::Headers{"Accept" => "application/json"}) do |response|
         return JSON.parse(response.body)
       end
     end
@@ -60,7 +61,7 @@ module KrikriDocker::Endpoints
       payload["EndpointConfig"] = JSON::Any.new(endpoint_config) if endpoint_config
       headers = HTTP::Headers{"Content-Type" => "application/json"}
 
-      @client.call("POST", "/networks/#{network}/connect", headers, payload.to_json) { }
+      @client.call("POST", "/networks/#{URL.path_segment(network)}/connect", headers, payload.to_json) { }
     end
 
     # Disconnects a container from a network.
@@ -68,12 +69,12 @@ module KrikriDocker::Endpoints
       headers = HTTP::Headers{"Content-Type" => "application/json"}
       body = {"Container" => container}.to_json
 
-      @client.call("POST", "/networks/#{network}/disconnect", headers, body) { }
+      @client.call("POST", "/networks/#{URL.path_segment(network)}/disconnect", headers, body) { }
     end
 
     # Deletes a specific network by its ID or name.
     def delete(id : String) : Nil
-      @client.call("DELETE", "/networks/#{id}") { }
+      @client.call("DELETE", "/networks/#{URL.path_segment(id)}") { }
     end
   end
 end

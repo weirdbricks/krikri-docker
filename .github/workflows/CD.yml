@@ -16,10 +16,10 @@ jobs:
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
         with:
-          crystal: 1.18.2
+          crystal: 1.22.3
 
       - name: Install dependencies
         run: shards install
 
       - name: Run tests
-        run: crystal spec
+        run: crystal run test/all_test.cr

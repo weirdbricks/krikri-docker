@@ -3,3 +3,9 @@ Naming/QueryBoolMethods:
 
 Documentation/DocumentationAdmonition:
   Enabled: false
+
+# Tests use `not_nil!` after an explicit `wont_be_nil`, the same posture as
+# the krikri suite this shard is developed alongside.
+Lint/NotNil:
+  Excluded:
+  - test/*

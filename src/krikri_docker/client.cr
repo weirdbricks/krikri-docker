@@ -119,9 +119,9 @@ module KrikriDocker
         tcp_socket = socket
         begin
           socket = OpenSSL::SSL::Socket::Client.new(tcp_socket, context: tls, sync_close: true, hostname: @tls_hostname)
-        rescue exc
+        rescue ex
           tcp_socket.close
-          raise exc
+          raise ex
         end
       end
 
@@ -166,11 +166,13 @@ module KrikriDocker
     # asking again per failure.
     def api_version : String
       @api_version ||= begin
-        version = ""
+        version = nil.as(String?)
         call("GET", "/version") do |response|
-          version = JSON.parse(response.body)["ApiVersion"].as_s
+          version = JSON.parse(response.body)["ApiVersion"]?.try(&.as_s?)
         end
-        version
+        version || raise Errors::InvalidVersionError.new
+      rescue JSON::ParseException
+        raise Errors::InvalidVersionError.new
       end
     end
   end

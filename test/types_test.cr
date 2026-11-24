@@ -1,4 +1,4 @@
-require "./spec_helper"
+require "./test_helper"
 
 describe KrikriDocker::Types do
   it "parses a minimal container inspect response" do
@@ -12,24 +12,24 @@ describe KrikriDocker::Types do
       JSON
 
     inspect = KrikriDocker::Types::ContainerInspectResponse.from_json(json)
-    inspect.config.cmd.should eq ["run"]
-    inspect.config.env.should eq ["A=1"]
-    inspect.host_config.binds.should eq ["/a:/b"]
-    inspect.network_settings.networks.keys.should eq ["bridge"]
+    inspect.config.cmd.must_equal(["run"])
+    inspect.config.env.must_equal(["A=1"])
+    inspect.host_config.binds.must_equal(["/a:/b"])
+    inspect.network_settings.networks.keys.must_equal(["bridge"])
   end
 
   it "parses a network with a null Containers list and null IPAM" do
     json = %({"Name": "bridge", "Id": "id", "Driver": "bridge", "IPAM": null, "Containers": null})
 
     network = KrikriDocker::Types::Network.from_json(json)
-    network.ipam.should be_nil
-    network.containers.should be_nil
+    network.ipam.must_be_nil
+    network.containers.must_be_nil
   end
 
-  it "parses a container summary with an unborn state" do
+  it "parses a container summary with a created state" do
     json = %([{"Id": "id", "Names": ["/c"], "Image": "alpine", "State": "created"}])
 
     summaries = Array(KrikriDocker::Types::ContainerSummary).from_json(json)
-    summaries.first.state.should eq "created"
+    summaries.first.state.must_equal("created")
   end
 end

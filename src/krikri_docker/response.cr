@@ -19,16 +19,13 @@ module KrikriDocker
       200 <= @status_code < 300
     end
 
-    # The response's canonical reason phrase when the daemon sent none -
-    # the same text the Ruby/Python SDKs quote for the codes a Docker
-    # daemon answers with.
+    # The canonical reason phrase for a status code, used only when the
+    # daemon sent no phrase on its status line. HTTP::Status#description is
+    # exactly the text requests would have quoted ("Internal Server Error",
+    # "I'm a teapot"); an unknown code has none and renders empty, like the
+    # SDK seeing an unrecognized status line.
     def self.reason_phrase(status : Int32) : String
-      text = HTTP::Status.new(status).to_s
-      # An unknown code renders as its bare number - no reason phrase to
-      # quote, same as the SDK seeing an unrecognized status line.
-      return "" if text.matches?(/\A\d+\z/)
-
-      text.split('_').map(&.capitalize).join(' ')
+      HTTP::Status.new(status).description || ""
     rescue ArgumentError
       ""
     end

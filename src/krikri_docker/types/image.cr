@@ -9,7 +9,10 @@ module KrikriDocker::Types
     @[JSON::Field(key: "Id")]
     property id : String
 
+    # nil for an image the daemon has no config for (an imported or
+    # scratch-built artifact) - the Docker Engine API returns `Config: null`
+    # there, and a non-nilable field would crash parsing.
     @[JSON::Field(key: "Config")]
-    property config : KrikriDocker::Types::ContainerConfig
+    property config : KrikriDocker::Types::ContainerConfig?
   end
 end

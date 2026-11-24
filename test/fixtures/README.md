@@ -11,5 +11,5 @@ Docker Engine captures (29.x/30.x, where the inspect payload omits
 `GraphDriver` and a fresh container reports `Health.Log: null` and
 `LogConfig.Config: null`) need a host running that engine; add a
 `docker-<version>/` directory from such a host. The null/missing-field cases
-those engines hit are also exercised directly in `spec/types_spec.cr`, so the
+those engines hit are also exercised directly in `test/types_test.cr`, so the
 parsers stay covered in the meantime.

@@ -1,5 +1,6 @@
 require "../client"
 require "../types/*"
+require "../url"
 
 module KrikriDocker::Endpoints
   # Volume endpoints of the Docker Engine API.
@@ -45,18 +46,18 @@ module KrikriDocker::Endpoints
 
     # Inspects a specific volume by its name; nil when it does not exist.
     def get_json(name : String) : JSON::Any?
-      @client.call("GET", "/volumes/#{name}", HTTP::Headers{"Accept" => "application/json"}) do |response|
+      @client.call("GET", "/volumes/#{URL.path_segment(name)}", HTTP::Headers{"Accept" => "application/json"}) do |response|
         return parse_body(response.body)
       end
     rescue ex : Errors::DockerAPIError
-      return nil if ex.status_code == 404
+      return if ex.status_code == 404
       raise ex
     end
 
-    # Deletes a specific volume by its name.
-    def remove(name : String, force : Bool = false) : Nil
-      path = force ? "/volumes/#{name}?force=true" : "/volumes/#{name}"
-      @client.call("DELETE", path) { }
+    # Deletes a specific volume by its name. No query parameters, the same
+    # request community.docker's docker_volume sends.
+    def remove(name : String) : Nil
+      @client.call("DELETE", "/volumes/#{URL.path_segment(name)}") { }
     end
 
     private def parse_body(body : String) : JSON::Any?

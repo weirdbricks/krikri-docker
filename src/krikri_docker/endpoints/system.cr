@@ -11,11 +11,12 @@ module KrikriDocker::Endpoints
 
     # Authenticates against a registry.
     #
-    # The payload is the same one the Docker Python SDK's login() sends: a
-    # null email alongside the credentials and the registry's address.
+    # The payload is the same one the Docker Python SDK's login() puts on the
+    # wire: its `_post_json` drops None values, so the email key the SDK
+    # would carry is absent here too.
     def auth(username : String, password : String, server_address : String) : Nil
       headers = HTTP::Headers{"Content-Type" => "application/json"}
-      body = {"username" => username, "password" => password, "email" => nil, "serveraddress" => server_address}.to_json
+      body = {"username" => username, "password" => password, "serveraddress" => server_address}.to_json
 
       @client.call("POST", "/auth", headers, body) { }
     end

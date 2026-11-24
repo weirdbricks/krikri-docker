@@ -105,18 +105,3 @@ module KrikriDocker::Types
     end
   end
 end
-
-#   ExposedPorts:
-#     type: "object"
-#     additionalProperties:
-#       type: "object"
-#       enum:
-#         - {}
-#       default: {}
-#   Volumes:
-#     type: "object"
-#     additionalProperties:
-#       type: "object"
-#       enum:
-#         - {}
-#       default: {}

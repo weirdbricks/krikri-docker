@@ -24,7 +24,7 @@ audit and to release on krikri's own cadence.
 ## Usage
 
 ```crystal
-require "krikri_docker"
+require "krikri-docker"
 
 client = KrikriDocker::Client.new                       # /var/run/docker.sock or DOCKER_HOST
 api = KrikriDocker::API.new(client)
@@ -84,11 +84,34 @@ client = KrikriDocker::Client.new("docker.example.com", 2376, tls_context)
   the negotiated API version is cached per client, so callers can render the
   Docker Python SDK's `APIError` wording without a second round trip.
 - `DOCKER_HOST` support, reconnect handling, TCP/TLS with a `tls_hostname`
-  override, and the nullable/newer-Engine response shapes (`Health.Log`,
-  `LogConfig.Config`, a missing `GraphDriver`).
+  override, and nullable response shapes where the Engine omits data
+  (`Image.Config`).
+- Pull failures streamed inside an HTTP 200 are detected and raised
+  (`Errors::ImagePullError`), and `Images#pull` can carry the
+  `X-Registry-Auth` header and `platform` parameter.
+- Request paths and query values reproduce the Docker Python SDK's own
+  spelling - path segments percent-encoded like `quote(value, safe="/:")`,
+  booleans as `True`/`False`, the container lookup's
+  `limit/all/size/trunc_cmd` query - because Ansible quotes those URLs in a
+  failed request's message.
 - Everything upstream has that krikri does not use (exec, build, push, tag,
   logs, events, system info, changes, top, waits, pauses, restart/kill, image
   history) is gone.
+
+## Development
+
+The suite is [minitest](https://github.com/ysbaddaden/minitest.cr) (the
+weirdbricks fork krikri pins), with the same ameba version krikri uses:
+
+```sh
+shards install
+crystal run test/all_test.cr
+crystal run lib/ameba/src/cli.cr
+crystal tool format --check src test
+```
+
+The transport tests need a Docker/Podman daemon and skip when there is none;
+the response-fixture tests always run.
 
 ## Contributors
 
